@@ -5,7 +5,7 @@
 
 Multi-source skill discovery engine for AI agents — search **2M+ skills**, automated safety review, cross-agent adaptation, one-click install.
 
-> 🔍 Works with: **Hermes Agent · Claude Code · Codex CLI · Cursor**
+> 🔍 Works with: **Hermes Agent · Claude Code · Codex CLI · Cursor· Openclaw**
 
 ## Keywords / 触发词
 
