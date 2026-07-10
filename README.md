@@ -5,7 +5,7 @@
 
 Multi-source skill discovery engine for AI agents — search **2M+ skills**, automated safety review, cross-agent adaptation, one-click install.
 
-> 🔍 Works with: **Hermes Agent · Claude Code · Codex CLI · Cursor· Openclaw**
+> 🔍 Works with: **Hermes Agent · Claude Code · Codex CLI · Cursor · OpenClaw**
 
 ## Keywords / 触发词
 
@@ -53,6 +53,7 @@ hermes skills install https://raw.githubusercontent.com/ypinpo/hermes-skills/mai
 | Claude Code | Full | `.claude/skills/` |
 | Codex CLI | Full | `.codex/skills/` |
 | Cursor | Full | `.cursor/skills/` |
+| OpenClaw | Full | `.openclaw/skills/` |
 
 ## Data Sources
 

@@ -268,19 +268,19 @@ Run `gh auth login` first.
 
 This skill's core workflow is agent-agnostic. When installing/reviewing skills, map generic concepts to the current agent's tool names:
 
-| Operation | Hermes | Claude Code | Codex | Cursor |
+| Operation | Hermes | Claude Code | Codex | Cursor | OpenClaw |
 |-----------|--------|-------------|-------|--------|
-| Read file | read_file | Read | read | read_file |
-| Write file | write_file | Write | write | write_to_file |
-| Edit file | patch | Edit | edit | replace_in_file |
-| Run command | terminal | Bash | bash | run_command |
-| Search files | search_files | Grep/Glob | grep/glob | search |
-| Load skill | skill_view | Skill | - | - |
-| Subtask | delegate_task | Task | task | - |
-| Task list | todo | TodoWrite | todo | - |
-| Web search | web_search | WebSearch | web_search | - |
-| Fetch page | - | WebFetch | web_fetch | - |
-| Skill path | ~/.hermes/skills/ | .claude/skills/ | .codex/skills/ | .cursor/skills/ |
+| Read file | read_file | Read | read | read_file | Read |
+| Write file | write_file | Write | write | write_to_file | Write |
+| Edit file | patch | Edit | edit | replace_in_file | Edit |
+| Run command | terminal | Bash | bash | run_command | Bash |
+| Search files | search_files | Grep/Glob | grep/glob | search | Grep/Glob |
+| Load skill | skill_view | Skill | - | - | Skill |
+| Subtask | delegate_task | Task | task | - | Task |
+| Task list | todo | TodoWrite | todo | - | TodoWrite |
+| Web search | web_search | WebSearch | web_search | - | WebSearch |
+| Fetch page | - | WebFetch | web_fetch | - | WebFetch |
+| Skill path | ~/.hermes/skills/ | .claude/skills/ | .codex/skills/ | .cursor/skills/ | .openclaw/skills/ |
 
 WebSearch/WebFetch/EnterPlanMode are not supported by all agents. When reviewing: remove steps for unsupported tools or mark as NOT_AVAILABLE.
 
