@@ -15,12 +15,14 @@ Multi-source skill discovery engine for AI agents — search **2M+ skills**, aut
 
 ## Features
 
-- **Multi-source search** — SkillsMP API (2M+ index) + GitHub + Gitee + ClawHub
-- **Smart recommendations** — 4-signal dynamic inference (context/gap/preference/degradation)
-- **Safety review** — 6-dimension automated audit before install
+- **Layered search** — L0 Awesome Lists → L1 SkillsMP + GitHub/Gitee → L2 GitHub API, upper tier hits stop early
+- **Composite scoring** — stars × 0.4 + freshness × 0.3 + activity × 0.2 + source quality × 0.1, not just stars
+- **Smart recommendations** — 4-signal dynamic inference (context/gap/preference/degradation) + proactive trigger detection
+- **Safety review** — 6-dimension automated audit before install + over-engineering gate
 - **Cross-agent adaptation** — auto-map tool names for Hermes, Claude Code, Codex, Cursor
 - **Curated lists** — 6 awesome repos with weekly auto-sync
 - **24h cache** — repeat queries return instantly
+- **Self-improving** — reflection log tracks recommendation outcomes, auto-tunes strategy
 
 ## Quick Start
 
@@ -28,8 +30,8 @@ Multi-source skill discovery engine for AI agents — search **2M+ skills**, aut
 |---------|-------------|
 | 推荐 / recommend | Smart recommendations based on your context |
 | 帮我找 XX 的 skill | Multi-source search across 2M+ skills |
-| 探索 / explore | Cross-domain trending discovery |
-| 这个 SKILL.md 安全吗？ | Quick security audit (5-dimension scan) |
+| 探索 / explore | Cross-domain trending discovery with layered search (L0→L1→L2), composite scoring, and proactive trigger detection |
+| 这个 SKILL.md 安全吗？ | Quick security audit (6-dimension scan) |
 | 装这个 skill | Full review → adaptation → diff review → install |
 
 ## Install

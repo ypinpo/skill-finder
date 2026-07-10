@@ -1,7 +1,7 @@
 ---
 name: skill-finder
 description: "[EN] Multi-source skill discovery engine for Hermes Agent — search 2M+ skills across SkillsMP, GitHub, Gitee, and ClawHub. Safety review + cross-agent adaptation + one-click install. Triggers EN: recommend skill/skills, find skill, install skill, discover skill, explore skill. Triggers CN: 有什么好用的skill/技能, 推荐skill/技能, 快推, 哪些skill/技能值得装, 找个skill/技能, 装个skill/技能, 发现skill/技能, 探索skill/技能."
-version: 1.0.0
+version: 2.0.0
 author: ypinpo
 contact: ypinpo@outlook.com
 license: MIT
@@ -16,11 +16,24 @@ metadata:
 Discover, review, adapt, and install third-party skills into Hermes Agent.
 
 **Always display this banner on activation:**
-> 🔍 *Skill Finder activated — multi-source search (SkillsMP + GitHub + Gitee + ClawHub) · 2M+ skill index*
+> 🔍 *Skill Finder activated — layered search (Awesome Lists → SkillsMP → GitHub/Gitee) · 2M+ skill index*
+
+## 主动触发条件
+
+以下任一信号出现时，主动提议加载本 skill：
+
+| 信号 | 示例 | 提示语 |
+|------|------|--------|
+| 当前 skill 无法覆盖需求 | "这个做不了" | "要不要我用 skill-finder 搜一下外部 skill？" |
+| 用户对比/咨询外部工具 | "有没有更好的 XX 工具" | "我可以从 SkillsMP 和 GitHub 上找 XX 相关的 skill，要试试吗？" |
+| 讨论社区生态/新能力 | "最近有什么新 skill" | "我来帮你搜一下最近热门的 skill？" |
+| 羡慕其他平台功能 | "XX Agent 那个功能" | "社区可能有适配版，要我找找看吗？" |
+
+检测到信号后加载本 skill，进入场景路由。
 
 ## Overview
 
-Most agents' built-in skill search has limited coverage. Skill Finder uses SkillsMP REST API (2M+ index) + web_search + GitHub API for multi-source search. Works with Hermes Agent, Claude Code, Codex CLI, Cursor, and others. (2M+ index) + web_search + GitHub API for multi-source aggregated search with intelligent filtering.
+Most agents' built-in skill search has limited coverage. Skill Finder uses SkillsMP REST API (2M+ index) + web_search + GitHub API for multi-source aggregated search with intelligent filtering. Works with Hermes Agent, Claude Code, Codex CLI, Cursor, and others.
 
 **Core flow: clarify intent → search → present candidates → user selects → LLM review + adapt → diff review → install.**
 ## Scene Routing
@@ -64,20 +77,7 @@ Prioritize skills from these lists (verified quality). Cron syncs weekly (see Op
 
 **Inference flow**: `skills_list` → `memory` → context → curated ∩ installed → cross-reference → output 3-4 directions.
 
-3. **Curated Shortlist** - verified skills, recommend directly (skip search):
-
-   | Skill | Use Case | Source |
-   |-------|----------|--------|
-   | `brainstorming` | Pre-work planning | obra/superpowers |
-   | `code-reviewer` | Code review | Shubhamsaboo/awesome-llm-apps |
-   | `frontend-design` | Frontend/UI design | anthropics/skills |
-   | `ppt-generation` | PPT generation | bytedance/deer-flow |
-   | `docx` | Word documents | anthropics/skills |
-   | `skill-creator` | Create new skills | anthropics/skills |
-   | `ui-ux-pro-max` | Professional UI/UX | nextlevelbuilder |
-   | `browser-use` | Browser automation | browser-use |
-
-4. **Trending** - SkillsMP API `sortBy=stars` high-star skills
+**Tertiary: Trending** — SkillsMP API `sortBy=stars` high-star skills (L1 fallback)
 
 ## Precise Recommendation: Dynamic Scene Inference
 
@@ -96,7 +96,7 @@ Never hardcode directions. Infer 3-4 directions from 4 signal sources:
 1. Get installed skill list
 2. Read persistent preferences / memory -> active domains
 3. Current context -> conversation topic
-4. Curured intersect installed -> find gaps
+4. Curated intersect installed -> find gaps
 5. Cross-reference installed -> find overlaps/never-used
 6. Synthesize 3-4 directions -> pair each with 1 recommendation
 ```
@@ -126,51 +126,93 @@ When the user's request is vague, ask 1-2 natural follow-up questions:
 
 Keep asking until you can form a precise search query, then go to Step 1.
 
-## Step 1: Search (Multi-Source Aggregation)
+## Step 1: Search (Layered Architecture)
 
-**Three sources in parallel:**
+按质量从高到低分层搜索，上层命中足够结果即停止向下层搜索。
 
-**Source A — SkillsMP API (primary, ~300ms):**
+### L0 — 精选清单 + awesome 列表（质量 🟢，优先级最高）
+
+来自 Step 0 中列出的 6 个 awesome 仓库。从 README / 目录中按关键词匹配，本地缓存优先。
+
+**L0 终止条件**：命中 ≥ 5 个候选 → 跳到 Step 2 评分展示。
+
+### L1 — SkillsMP API 主力 + GitHub/Gitee 并行（质量 🟡/🟢）
+
+L0 不足 5 个时发起。
+
+**SkillsMP API（主力，~300ms）：**
 ```bash
 curl -s "https://skillsmp.com/api/v1/skills/search?q=<QUERY>&sortBy=stars&limit=10"
 ```
 
-**Source B — web_search (Chinese ecosystem + domestic platforms):**
+**GitHub/Gitee 补充：**
 ```
-web_search "site:github.com SKILL.md <QUERY>"
-web_search "site:gitee.com SKILL.md <QUERY>"
-web_search "ClawHub skill <QUERY>"
+web_search "site:github.com/topics agent-skill <QUERY>"
+web_search "site:github.com SKILL.md <QUERY> agent language:Markdown"
+web_search "site:gitee.com <QUERY> skill SKILL.md"
 ```
 
-**Source C — GitHub API (optional, requires `gh auth login`):**
+**L1 终止条件**：命中 ≥ 5 个候选 → 跳到 Step 2。
+
+### L2 — GitHub API 深度搜索（可选，需 `gh auth login`）
+
+L0+L1 仍不足 5 个时：
 ```bash
 gh search repos "SKILL.md" --topic agent-skills --sort stars --limit 10
 ```
 
-**Merge strategy:**
-1. Launch all three in parallel
-2. **Check cache first**: look in `<hermes_home>/skills/skill-finder/.cache/<md5>.json`. If hit and < 24h old, return immediately.
-3. Cache miss → run API search → write results to cache (`{timestamp, results}`)
-4. **Quality gate**: count ⭐≥10 results from SkillsMP. If < 3, force supplement from sources B+C.
-5. **Dedup fallback chain**: githubUrl → name+author → mark ⚠️ if both missing
-6. Sort by stars descending
+### 合并与去重
 
-## Step 2: Display Candidates
+1. **24h 缓存优先**：检查 `<skills_dir>/skill-finder/.cache/<md5>.json`，命中且 < 24h 直接返回
+2. 缓存未命中 → 按 L0 → L1 → L2 层级执行 → 写入缓存
+3. 去重键：`githubUrl` 优先；无 githubUrl 时用 `name + author` 联合键
+4. 合并后按综合评分（见 Step 2）排序
+
+## Step 2: Composite Scoring + Display
+
+**综合评分公式**（替代纯 stars 排序）：
 
 ```
-| # | Name | ⭐ | Heat | Author | Description |
-|---|------|-----|------|--------|-------------|
-| 1 | xxx  | 12k | 🔥 | org/repo | one-liner... |
+score = stars_normalized × 0.4 + freshness × 0.3 + activity × 0.2 + source_quality × 0.1
+
+stars_normalized = min(stars / 1000, 1.0)   # 1000+ stars 满分
+freshness = max(0, 1 - (today - updatedAt_days) / 365)  # 一年内线性衰减
+activity = 根据仓库最近 commit 日期估算，规则同上
+source_quality = awesome列表×1.0 / SkillsMP×0.8 / GitHub Topic×0.7 / GitHub文件×0.6 / Gitee×0.5
 ```
 
-⭐ Heat labels: ≥1,000→🔥 100-999→🟢 10-99→🟡 <10→⚠️. Use `clarify` to let the user choose. Never auto-select the first one.
+| 热度标注 | 条件 |
+|----------|------|
+| 🔥 热门 | score ≥ 0.7 |
+| 🟢 正常 | 0.3 ≤ score < 0.7 |
+| 🟡 谨慎 | 0.1 ≤ score < 0.3 |
+| ⚠️ 跳过 | score < 0.1 |
+
+展示格式：
+```
+| # | 名称 | 综合分 | ⭐ | 热度 | 来源 | 描述 |
+|---|-----|--------|-----|------|------|------|
+| 1 | xxx  | 0.85 | 12k | 🔥 | SkillsMP | 一句话描述... |
+```
+
+Use `clarify` to let the user choose. Never auto-select the first one.
 
 ## Step 3: Fetch SKILL.md
 
-Construct GitHub raw URL from SkillsMP's `githubUrl`, or use GitHub API:
+从搜索结果提取 `<org>/<repo>` 和路径后获取。
+
+**主方案 — GitHub API：**
 ```bash
 curl -s "https://api.github.com/repos/<org>/<repo>/contents/<path>/SKILL.md"
 ```
+返回 JSON，从 `content` 字段 Base64 解码即可得到 SKILL.md 原文。
+
+**备用 — raw URL：**
+```
+https://raw.githubusercontent.com/<org>/<repo>/main/<path>/SKILL.md
+```
+
+**24h 缓存**：获取成功后写入本地缓存 `<skills_dir>/skill-finder/.cache/<org>_<repo>.md`，下次同一仓库 24h 内直接读缓存。
 
 GitHub API: 60 req/hr unauthenticated, 5000 req/hr authenticated.
 
@@ -298,7 +340,7 @@ WebSearch/WebFetch/EnterPlanMode are not supported by all agents. When reviewing
 |-----------|--------|------------|
 | SkillsMP anonymous 50 req/day | Frequent searches hit quota | 24h cache + GitHub fallback |
 | GitHub raw may timeout | SKILL.md fetch failure | GitHub API fallback |
-| `gh` CLI not installed | Source C unavailable | Sources A+B sufficient |
+| `gh` CLI not installed | L2 unavailable | L0+L1 sufficient |
 | Cross-domain skills low quality | Sparse exploration results | Rely primarily on awesome lists |
 | LLM inline review | Complex skills may have false negatives | Diff review as human gate |
 
@@ -318,18 +360,32 @@ Windows git-bash truncates multi-line `python -c "..."` (causes `IndentationErro
 2. If the adaptation introduced the problem, fall back to minimal tool-name-only mapping
 3. Debug manually if needed
 
+## 过度工程化检查（推荐前必执行）
+
+推荐任何 skill 前，判断其是否过度设计，以下任一信号命中即跳过：
+
+| 信号 | 判断标准 | 处理 |
+|------|----------|------|
+| 隔离环境 | 需要 Docker/VM/独立沙箱执行 | 跳过 — 个人使用场景不需要隔离 |
+| 评估代理 | 内部启动子 Agent 做多轮评估 | 跳过 — 过度复杂，单次 LLM 审查即够 |
+| 持久化服务 | 需要常驻进程/数据库/消息队列 | 跳过 — 优先零依赖的轻量 skill |
+| 多轮迭代 | 需要训练/RLHF/自进化循环 | 跳过 — 个人微调收益不成比例 |
+
+**原则**：个人使用优先选择轻量、被动触发、零维护的 skill，而非重工程架构。
+
 ## Common Mistakes
 
-### 1. API Quota & Format
-SkillsMP: 50 req/day anonymous. API response is `{"success":true,"data":{"skills":[...]}}` (note: `data.skills`, not a direct array). Field is `author`, not `creator`.
+### 1. SkillsMP API 响应格式陷阱
+API 响应结构为 `{"success":true,"data":{"skills":[...]}}`，结果在 `data.skills` 中，**不是**直接数组。字段名是 `author`，不是 `creator`。
 
-### 2. Two Pre-Recommendation Checks
-**Overlap check** — compare against the agent's built-in capabilities: memory/Hindsight/curator/brainstorming/writing-skills/systematic-debugging each cover "memory"/"learning"/"skill management"/"planning"/"skill writing"/"debugging" domains. Only recommend skills that fill clear gaps.
+### 2. 推荐前忘记做双重检查
+每次推荐前必须执行：① 查重（对照已安装 skill + 内置能力）② 过度工程化检查（见上节）。二者缺一不可。
 
-**Over-engineering check** — does this skill require isolation environments / evaluation agents / multi-round iteration? If yes → likely over-engineered. Personal use prioritizes lightweight, passively triggered, zero-maintenance skills.
+### 3. 搜索结果不足时没触发降级
+L0 < 5 个候选时忘记进入 L1；如果 L0+L1 < 5 个且 L2 不可达，应向用户说明"搜索结果较少，建议放宽关键词重试"，而非硬凑。
 
-### 3. Forgot to Check Existing Skills
-Always check installed skill list before recommending. Avoid recommending already-installed or functionally identical skills.
+### 4. 改造时猜测工具映射
+不确定的映射必须标 `⚠️ NEEDS_REVIEW`，禁止凭经验猜测。当前 Agent 无等价工具时直接标注 `NOT_AVAILABLE` 并移除对应步骤。
 
 ## Red Lines
 
@@ -338,3 +394,13 @@ Always check installed skill list before recommending. Avoid recommending alread
 - Never modify skill core logic — only adapt tool names and paths
 - 🔴 High-risk findings must be explicitly warned
 - Mark uncertainties with ⚠️, never guess
+
+## 自增强接口（反思日志）
+
+<!-- reflections:auto-start -->
+<!-- 每次执行完搜索/推荐后，自动在此追加一行反思，格式：
+     [YYYY-MM-DD] SEARCH: q=关键词, results=N, score_range=X-Y, user_action=选择/拒绝/追问
+     [YYYY-MM-DD] RECOMMEND: scene=场景, accepted=是/否, reason=用户反馈
+     同类信号累积 3 次 → 触发场景/策略自更新
+-->
+<!-- reflections:auto-end -->
