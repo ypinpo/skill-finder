@@ -1,7 +1,7 @@
 # Skill Finder
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)]()
+[![Version](https://img.shields.io/badge/version-1.10.0-green.svg)]()
 
 Multi-source skill discovery engine for AI agents — search **2M+ skills**, automated safety review, cross-agent adaptation, one-click install.
 
@@ -20,7 +20,7 @@ Multi-source skill discovery engine for AI agents — search **2M+ skills**, aut
 - **Smart recommendations** — 4-signal dynamic inference (context/gap/preference/degradation) + proactive trigger detection
 - **Safety review** — 6-dimension automated audit before install + over-engineering gate
 - **Cross-agent adaptation** — auto-map tool names for Hermes, Claude Code, Codex, Cursor
-- **Curated lists** — 6 awesome repos with weekly auto-sync
+- **Curated lists** — 8 awesome repos with weekly auto-sync
 - **24h cache** — repeat queries return instantly
 - **Self-improving** — reflection log tracks recommendation outcomes, auto-tunes strategy
 
@@ -74,6 +74,8 @@ hermes skills install https://raw.githubusercontent.com/ypinpo/hermes-skills/mai
 | [anthropics/skills](https://github.com/anthropics/skills) | 159k | Official Claude skills |
 | [Shubhamsaboo/awesome-llm-apps](https://github.com/Shubhamsaboo/awesome-llm-apps) | 116k | LLM apps / agents |
 | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | 28k | Vercel AI ecosystem |
+| [heilcheng/awesome-agent-skills](https://github.com/heilcheng/awesome-agent-skills) | 6k | Agent skill aggregation 🆕 |
+| [codesstar/hermes-skill-atlas](https://github.com/codesstar/hermes-skill-atlas) | — | Hermes 专用 70+ skill 浏览器 🆕 |
 | [kodustech/awesome-agent-skills](https://github.com/kodustech/awesome-agent-skills) | 87 | Agent skill curation |
 | [gmh5225/awesome-skills](https://github.com/gmh5225/awesome-skills) | 41 | Agent tools & resources |
 
